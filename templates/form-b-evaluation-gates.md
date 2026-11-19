@@ -270,20 +270,22 @@ Bốn lăng kính (bắt buộc đủ cả bốn; dự án AI hay chết ở ba 
 
 ### B7.1 · Câu 2.6 · 2–3 cổng phòng ngừa trong `lab10/guards.py`
 
-Mỗi cổng ứng với một dòng pre-mortem (B6) hoặc một dòng HAZOP (B4). Viết trong `pre_guard(ctx)` (trước khi trợ lý đọc ticket)
-hoặc `write_gate(ctx, action)` (trước mỗi lệnh ghi). Thử bằng:
+Mỗi cổng ứng với một dòng pre-mortem (B6) hoặc một dòng HAZOP (B4). Viết trong `pre_guard(ctx)` (trước khi trợ lý đọc ticket) hoặc `write_gate(ctx, action)` (trước mỗi lệnh ghi). Thử bằng:
 
 ```bash
-python3 -m lab10.eval --suite base --stage after --note "cổng vòng 1: ..."
-python3 -m unittest discover -s tests
+python -m lab10.eval --suite base --stage after --note "G1 G2 G3 integrated"
+python -m unittest discover -s tests
 ```
 
-| # | Cổng (hàm và nhánh, ví dụ `write_gate` khi `tool == "issue_refund"`) | Ứng với dòng nào ở B6 / B4 | Chặn điều gì, dựa vào nguồn sự thật nào | Mã lần chạy `base · after` | Ca đang đúng nào bị hỏng? (phải là "không") |
+| # | Cổng (hàm và nhánh) | Ứng với dòng nào ở B6 / B4 | Chặn điều gì, dựa vào nguồn sự thật nào | Mã lần chạy `base · after` | Ca đang đúng nào bị hỏng? |
 |---|---|---|---|---|---|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
+| 1 | **G1 – Source of Truth:** `source_of_truth_guard()` trong `write_gate()`, áp dụng cho `issue_refund` và `file_carrier_fault`. | B6 – Kỹ thuật; B4 – WRONG (`amount_vnd`), INVALID (`approval_id`), INCOMPLETE (`delay_cause`), PERTURBED (nội dung ticket). | Đối chiếu độ trễ bằng tracking DB, quyền lợi theo policy hiệu lực, approval và ledger để ngăn hoàn sai/hoàn trùng. Kiểm tra đúng parcel, carrier, nguyên nhân và số ngày trễ trước khi ghi lỗi hãng. Thiếu căn cứ thì chuyển người duyệt. | `R-base-after-20261119-162958-e0b0b3` (110 lượt); `R-base-after-20261119-164359-c2c655` (65 lượt trong pilot). | **Không ghi nhận.** Cả 110 lượt đạt trước khi thu hẹp phạm vi và 65/65 lượt đạt sau tích hợp G2. |
+| 2 | **G3 – Legal/PII:** `legal_pii_guard()` trong `write_gate()`, áp dụng cho `notify_carrier`. | B6 – Pháp lý; B4 – PERTURBED (dữ liệu gửi bên thứ ba). | Áp dụng allowlist `order_id`, `parcel_id`, `district`, `delay_days`; đối chiếu với order/tracking DB, loại bỏ `customer_note`, `recipient_contact` và mọi trường ngoài allowlist. Payload thiếu hoặc không xác minh được thì chuyển người duyệt. | `R-base-after-20261119-162958-e0b0b3` (110 lượt); `R-base-after-20261119-164359-c2c655` (65 lượt trong pilot). | **Không ghi nhận.** `pii_leaks=0`, không phát hiện regression trên bộ nền. |
+| 3 | **Không áp dụng:** G2 – Business/Ops được cấu hình trong `config/operating_gates.json`, không phải Guard code trong `guards.py`. | B6 – Kinh doanh; Con người và vận hành. | Giới hạn ngân sách hoàn, chi phí, ROI, phạm vi pilot và năng lực người duyệt thông qua cấu hình và runbook. | `R-base-after-20261119-164359-c2c655` (kết quả tích hợp). | Không áp dụng cho Guard code; Gate tích hợp đạt các ngưỡng đã ký. |
 
+**Kết quả kiểm thử:** Unit tests đạt 13/13. Run tích hợp `R-base-after-20261119-164359-c2c655` có `pass_rate=1.0`, `pass_k=1.0`, `wrongful_refund_vnd=0`, `wrongful_carrier_faults=0`, `pii_leaks=0`, `escalation_rate=0.2308`, chi phí 5.550đ/ticket, ROI 0.8 và 0 ca bị ùn. Gate Report xác nhận Acceptance Criteria đã ký còn nguyên (hash `96e6480c`), tất cả ngưỡng đều đạt.
+
+**So sánh:** Baseline `R-base-before-20261119-153542-b45eeb` có hoàn sai 20.000đ và 1 lỗi hãng oan; sau khi triển khai Guards, cả hai chỉ số giảm về 0 trên bộ nền.
 ### B7.2 · Câu 2.7 · Hai bước tránh rò rỉ dữ liệu
 
 Bàn đang chỉnh cổng tới khi 22 ticket bộ nền xanh hết. Nêu 2 bước cụ thể để không "chỉnh trên chính bộ dùng để chấm"
