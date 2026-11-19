@@ -289,8 +289,9 @@ python3 -m unittest discover -s tests
 Bàn đang chỉnh cổng tới khi 22 ticket bộ nền xanh hết. Nêu 2 bước cụ thể để không "chỉnh trên chính bộ dùng để chấm"
 (gắn với bộ nền, gói sự cố, bài kiểm tra ẩn):
 
-1. …
-2. …
+1. **Tách dữ liệu đánh giá khỏi logic xây dựng Guards:** Sử dụng bộ nền 22 ticket × 5 seed để phân tích loại lỗi và đo kết quả trước/sau, không hardcode theo `ticket_id`, `order_id`, `customer_id`, seed hoặc đáp án từng ticket. Hai nhóm Guards (Source of Truth và Legal/PII) chỉ dựa trên tracking DB, policy có hiệu lực và allowlist dữ liệu.
+
+2. **Giữ độc lập gói sự cố và hidden tests:** Không sử dụng thẻ sự cố chưa phát hoặc bài kiểm tra ẩn để tối ưu Guards vòng 1. Sau checkpoint, giữ nguyên `guards_round1.py`, ghi nhận kết quả mốc `prepared` trước khi sửa, sau đó mới sửa `guards.py` và đánh giá mốc `after`. Không thay đổi nhãn hay dữ liệu đánh giá để cải thiện chỉ số.
 
 ### B7.3 · Câu 2.8 · Một behavioral test
 
