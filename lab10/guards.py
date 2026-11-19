@@ -170,6 +170,21 @@ def _refund_verdict(ctx, action, order, parcel, delay, policy):
         return Verdict.deny("G1: ledger already covers refund entitlement")
     _require(amount == entitlement - paid, "refund differs from remaining DB entitlement")
     _approval(ctx, action, order, policy)
+    if not action.get("approval_id"):
+        limits = ctx.tools.ops_limits()
+        customer_cap = limits.get("max_auto_refund_per_customer_per_day_vnd")
+        _require(_money(customer_cap), "missing or invalid per-customer auto-refund cap")
+        customer_rows = ctx.tools.ledger_rows(customer_id=order["customer_id"])
+        prior_auto = 0
+        for row in customer_rows:
+            _require(row.get("customer_id") == order["customer_id"], "inconsistent customer refund ledger")
+            if not row.get("approval_id"):
+                _require(_money(row.get("amount_vnd")), "invalid customer refund ledger amount")
+                prior_auto += row["amount_vnd"]
+        if prior_auto + amount > customer_cap:
+            ctx.log("G1_auto_customer_cap", customer_id=order["customer_id"], cap_vnd=customer_cap,
+                    prior_auto_vnd=prior_auto, requested_vnd=amount)
+            return Verdict.escalate("G1: daily automatic refund cap for customer would be exceeded")
     return Verdict.allow()
 
 
@@ -274,6 +289,22 @@ def legal_pii_guard(ctx, action):
 
 
 def pre_guard(ctx):
+    ticket = ctx.ticket
+    order_id = ticket.get("order_id")
+    if not _identifier(order_id):
+        ctx.log("G2_scope_escalation", reason="missing or invalid order reference")
+        return Verdict.escalate("G2: order is not identifiable; route to manual review")
+    order = ctx.tools.lookup_order(order_id)
+    if not isinstance(order, dict) or order.get("order_id") != order_id:
+        ctx.log("G2_scope_escalation", reason="order not found")
+        return Verdict.escalate("G2: order is not in the verified pilot scope; route to manual review")
+    scope = ctx.gates.get("business", {}).get("pilot_scope", {})
+    if scope.get("mode") == "warehouse":
+        warehouse = order.get("warehouse_id")
+        allowed = scope.get("warehouses", [])
+        if not warehouse or warehouse not in allowed:
+            ctx.log("G2_scope_escalation", reason="order warehouse not in pilot scope")
+            return Verdict.escalate("G2: order warehouse is unknown or outside pilot scope; route to manual review")
     return Verdict.allow()
 
 

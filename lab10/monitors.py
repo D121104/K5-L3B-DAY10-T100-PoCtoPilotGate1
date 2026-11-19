@@ -19,7 +19,20 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def protected_refund_escalation_rate(trials):
+    """Fraction of trials escalated for an invalid approval or the customer auto-refund cap."""
+    def protected_event(event):
+        if event.get("kind") == "G1_auto_customer_cap":
+            return True
+        return (event.get("kind") == "G1_unverifiable"
+                and "approval" in str(event.get("reason", "")).casefold())
+
+    return sum(any(protected_event(event) for event in trial.get("events", []))
+               for trial in trials) / max(1, len(trials))
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "protected_refund_escalation_rate": protected_refund_escalation_rate,
 }
 STARTER_MONITORS = ("escalation_rate",)

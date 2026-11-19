@@ -2,10 +2,10 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm (`TenNhom`, không dấu, không khoảng trắng):
-- Lớp: `L3A` / `L3B`
+- Tên nhóm (`TenNhom`, không dấu, không khoảng trắng): `T100`
+- Lớp: `L3B`
 - Repo của bàn: `K5-<L3A|L3B>-DAY10-<TenNhom>-PoCtoPilotGate1`
-- Thẻ sự cố đã bốc (S1–S8):
+- Thẻ sự cố đã bốc (S1–S8): `S8` (commit nhận thẻ: `68aae9f`)
 
 ## Thành viên
 

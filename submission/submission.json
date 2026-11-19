@@ -1,12 +1,17 @@
 {
-  "team": "",
-  "members": [],
-  "incident": "",
-  "decision_v1": "",
-  "decision_v2": "",
+  "team": "K5-L3B-DAY10-T100-PoCtoPilotGate1",
+  "members": [
+    "DaoDucDuy-2A202603900",
+    "NguyenMinhNhan-2A202603723",
+    "BuiNgocHung-2A202603770",
+    "TranCanhHung-2A202603759"
+  ],
+  "incident": "S8",
+  "decision_v1": "Thu hẹp",
+  "decision_v2": "Cải tiến thêm",
   "three_lines": {
-    "environment_assumption": "",
-    "reduce_or_prevent": "",
-    "measure_in_pilot": ""
+    "environment_assumption": "Approval store có thể cập nhật chậm hoặc bị thu hồi giữa lúc guard kiểm tra và lúc tool ghi.",
+    "reduce_or_prevent": "G1/G2 chặn approval sai, cap khách và order không định danh trước khi ghi; monitor chỉ phát hiện, không ngăn race.",
+    "measure_in_pilot": "Đo approval/cap escalations, đối soát ledger với approval store, cost unknown-order, SLA và recheck trước Gate 2."
   }
 }
