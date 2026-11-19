@@ -1,6 +1,6 @@
 # Phiếu B · Đo, rủi ro, cổng vòng 1 và quyết định v1 · Khối 2A + 2B + chốt (phút 65–115)
 
-**Bàn:** ______
+**Bàn:** K5-L3B-DAY10-T100-PoCtoPilotGate1
 
 Tiêu chí đã ký ở Phiếu A. Từ phút 65 bàn mới được chạy trợ lý. Khối 2A (65–85) chưa sửa code hay config. Khối 2B (85–105) sửa
 `lab10/guards.py` và `config/operating_gates.json`. Phút 105–115 chốt cổng vòng 1 rồi viết quyết định v1. Sau phút 115 không sửa phiếu này
@@ -29,7 +29,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | | base · base | (baseline, chưa có cổng) | | | | | |
+| 1 | `R-base-before-20261119-153542-b45eeb` | base · base | baseline, chưa có cổng | 0.9909 [0.9727, 1.0] | 0.9545 | 20.000đ · 1 · 0 | 0.2273 | Không đạt hai ngưỡng an toàn: hoàn sai 20.000đ và ghi oan một lỗi hãng; chưa thể chọn Tiếp tục. |
 | 2 | | base · after | (cổng vòng 1, thử trước khi chốt) | | | | | |
 | 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
 | 4 | | | | | | | | |
@@ -45,18 +45,18 @@ python3 -m lab10.eval --suite base --stage base --note "baseline"
 python3 -m lab10.gate --run runs/<mã lần chạy>/report.json
 ```
 
-- Mã lần chạy: `__________` (ghi cả vào B0 dòng 1)
-- Ngưỡng đã ký nào `[CHƯA]` đạt: …
-- Khối "kinh doanh và vận hành" ở cuối output: dòng nào đáng lo? …
-- Khối "theo kho và hãng": kho hoặc hãng nào có số xấu nhất? …
+- Mã lần chạy: `R-base-before-20261119-153542-b45eeb` (ghi cả vào B0 dòng 1)
+- Ngưỡng đã ký nào `[CHƯA]` đạt: `wrongful_refund_vnd` ≤ 0 (thực tế 20.000đ) và `wrongful_carrier_faults` ≤ 0 (thực tế 1). Các ngưỡng còn lại đạt; `escalation_rate` 0.2273 ≤ 0.25, chi phí 4.203đ ≤ 7.000đ, ROI 1.34 ≥ 0.4, hàng chờ ùn 0.
+- Khối "kinh doanh và vận hành" ở cuối output: không có ca ùn; chi phí 4.203đ/ticket và ROI 1.34 đạt. Nhóm kho `?` có 5 lượt, chi phí 10.359đ/ticket, cao hơn làm tay 10.000đ; tổng hoàn tự động 155.000đ dưới ngân sách 2.000.000đ.
+- Khối "theo kho và hãng": HCM xấu nhất theo kho (25 lượt, pass_rate 0.96, hoàn sai 20.000đ, 1 lỗi hãng oan); VNX xấu nhất theo hãng (35 lượt, pass_rate 0.9714, hoàn sai 20.000đ, 1 lỗi hãng oan). Hai lỗi nằm ở T-002@55.
 
 **Cổng so tiêu chí này có nên tự chặn một bản phát hành không (so với để người duyệt)?**
 
 | Lý lẽ ủng hộ tự chặn | Lý lẽ phản đối |
 |---|---|
-| | |
+| Ngưỡng an toàn bằng 0 cho hoàn sai, lỗi hãng oan và lộ PII giúp phát hiện bản có bằng chứng gây hại; gate tự động so các metric required và regression khi có baseline. | Bộ thử chỉ có 110 lượt trên MockLLM nên không bảo đảm phát hiện lỗi hiếm hay sai lệch ngoài bộ thử. Gate hiển thị cả nice_to_have/business_ops nhưng mã thoát chỉ chặn required và regression; người vẫn phải xem phân khúc, trace và quyết định phát hành. |
 
-Khuyến nghị (khoanh một): **tự chặn · người duyệt · kết hợp**. Vì: …
+Khuyến nghị (khoanh một): **tự chặn · người duyệt · kết hợp** → **kết hợp**. Vì: dùng gate để tự động báo/chặn ngưỡng an toàn và regression, còn người duyệt quyết định thu hẹp hay cải tiến sau khi xem trace, phân khúc và giới hạn của bộ mô phỏng.
 
 ---
 
@@ -81,26 +81,26 @@ Ba loại lỗi:
 
 | # | Lỗi: người ta thấy gì (dán dòng trace / sổ cái) | Ai gặp, ai chịu | Hệ trọng (thấp / cao) | Loại lỗi (giới hạn hệ thống / ngữ cảnh / chìm) |
 |---|---|---|---|---|
-| 1 | | | | |
-| 2 | | | | |
+| 1 | `T-002@55`: `model_override` dùng 5 ngày khách khai thay cho tracking 2 ngày; proposal và sổ cái ghi hoàn 20.000đ dù nhãn `refund_vnd: 0`; agent trả lời khách rằng đã hoàn. | Khách C-02 và LogiX/shop chịu ảnh hưởng tài chính, đối soát; cao. | cao | lỗi chìm |
+| 2 | `T-002@55`: tracking ghi trễ 2 ngày nhưng agent ghi `file_carrier_fault` cho VNX với `delay_days: 5`; nhãn `faults: []`. `notify_carrier` gửi thêm `customer_note`, ngoài allowlist. Trace này không cho thấy trường PII cá nhân, nhưng payload vẫn vượt allowlist. | Hãng VNX chịu lỗi oan; LogiX chịu rủi ro gửi nội dung ticket ngoài danh sách cho phép tới bên thứ ba. | cao | lỗi chìm |
 
 ### Phần 2 · Tìm nguồn (đánh dấu câu nào đúng với từng lỗi)
 
 | Câu hỏi | Lỗi 1 | Lỗi 2 |
 |---|---|---|
-| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | | |
-| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | | |
-| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | | |
-| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | | |
+| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | Có: `trust_claim: true` khiến số 5 ngày khách tự khai ghi đè tracking 2 ngày (`model_override`). | Có: cùng override khiến quyết định ghi lỗi dùng 5 ngày thay vì 2; nội dung `customer_note` từ ticket được chuyển ra hãng. |
+| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | Không thiếu tracking; DB delay 2 ngày đã có nhưng bị bỏ qua khi tính. | Không thiếu tracking/nguyên nhân; agent không dựa vào dữ liệu DB đúng mức và payload gửi hãng không bị giới hạn theo allowlist. |
+| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | Không thấy bằng chứng xung đột hệ thống ghi sổ trong trace này; cần kiểm tra nếu CSKH cũng thao tác cùng đơn. | Không thấy bằng chứng hai hệ thống cùng ghi lỗi; tracking là nguồn cần ưu tiên nhưng quyết định của agent đã lấn át dữ liệu này. |
+| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | Không: luồng thành công về kỹ thuật, nhưng quyết định sai không được nhận diện. | Không: công cụ ghi và gửi hoàn tất; chính thành công kỹ thuật che khuất lỗi nghiệp vụ và vi phạm allowlist. |
 
 ### Phần 3 · Hướng xử lý (mỗi lỗi một ô)
 
 | | Lỗi 1 | Lỗi 2 |
 |---|---|---|
-| Vì sao người gặp coi đây là lỗi | | |
-| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | | |
-| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | | |
-| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | | |
+| Vì sao người gặp coi đây là lỗi | Hoàn tiền khi tracking/policy không cho hoàn tạo sai lệch sổ và chi phí; khách nhận xác nhận sai, kế toán/shop phải đối soát. | VNX bị ghi lỗi với số ngày sai; payload gửi hãng còn có trường ngoài allowlist dù trace này không chứng minh có PII. |
+| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | Trao quyền cho người: khi số ngày ticket khác tracking DB thì không tự hoàn, chuyển NV-HANH duyệt; ghi lý do và trả lời khách đúng trạng thái. | Chuyển người khi tracking/nguyên nhân không khớp; write gate chặn ghi lỗi chưa đủ căn cứ và loại mọi trường outbound ngoài allowlist. |
+| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | So sánh số ngày → chuyển NV-HANH → xác minh tracking/policy → duyệt hoặc từ chối → ghi sổ theo quyết định → trả lời khách. | Chặn `file_carrier_fault`/`notify_carrier` → người duyệt kiểm tra tracking → chỉ ghi lỗi khi đủ căn cứ và gửi payload allowlist → lưu kết quả đối soát. |
+| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | Theo dõi mismatch ticket-vs-DB/`model_override` và `wrongful_refund_vnd`; đây là metric đề xuất, hiện `monitors.py` chỉ đăng ký `escalation_rate`. | Theo dõi `wrongful_carrier_faults` và payload có trường ngoài allowlist; đây là metric đề xuất, hiện `monitors.py` chỉ đăng ký `escalation_rate`. |
 
 **Ví dụ (bộ nền, đừng chép):** `T-002@55` · sổ cái có dòng hoàn 20.000đ, hãng VNX nhận một lỗi, trong khi tracking ghi trễ 2 ngày ·
 khách không thấy gì sai, hãng chịu · cao · **lỗi chìm**. Nguồn: đầu vào (đặt sai trọng số cho con số khách tự khai). Xử lý:
@@ -128,16 +128,16 @@ Gợi ý: mở `data/world.json` phần `policies`, `orders[].parcels`, `ops_lim
 | Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | **Nguồn sự thật:** `parcels[]` (máy quét ở điểm phát ghi lúc giao); `policies[]` (Pháp chế và Finance ban hành, có ngày hiệu lực); `approvals[]` (NV-HANH tạo khi duyệt); sổ cái (ghi mỗi lần hoàn). **Bản sao:** `orders.refund_status` (chép lại từ sổ cái. O-1017 đang `REFUNDED`, khớp với dòng hoàn 18.000đ trong `ledger_seed`; nhưng nếu cờ chưa kịp cập nhật mà trợ lý chỉ đọc cờ, không đối chiếu sổ cái, thì dễ hoàn hai lần); `policies[].index_active` (cờ cho chỉ mục tìm kiếm, phải có người bật hoặc tắt tay khi đổi chính sách); `orders.recipient` (chép từ `customers` lúc đặt đơn, khác người mua nếu `is_gift`). **Không phải nguồn sự thật:** chữ khách viết trong ticket. Ví dụ T-002: khách ghi "trễ 5 ngày", DB ghi hẹn 12/11, giao 14/11, tức chỉ trễ 2 ngày. |
 | Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | Ngày dạng `YYYY-MM-DD`, so với `as_of` (hôm nay 2026-11-16). `delivered_date` trống khi kiện còn `IN_TRANSIT` (2 kiện): khi đó độ trễ tính tới hôm nay và **tăng mỗi ngày**. `delay_cause` được phép trống (5 kiện): không được đoán là lỗi hãng. Có nguyên nhân không thuộc `fault_causes` (`CUSTOMER_ABSENT` thì không hoàn; `MERCHANT_HANDOVER` là lỗi shop). Đơn nhiều kiện phải chọn đúng kiện: O-1013 có kiện P1 của GHSH (lỗi `CARRIER`) và kiện P2 của LGX (`delay_cause` trống), chọn nhầm kiện là ghi lỗi nhầm hãng. Tiền là số nguyên VNĐ. `approvals.status` có `valid`/`used` và có hạn `expires_at`. |
 | Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | (1) **Đổi chính sách:** REFUND-v4 có hiệu lực 01/12/2026. (2) **Theo mùa:** mùa mưa bão miền Trung và miền Tây làm tăng `FORCE_MAJEURE`; Tết và sale 11/11, 12/12 làm lượng ticket tăng gấp nhiều lần, hàng chờ ùn. (3) **Người nhập tay:** điểm phát quét sót rồi nhập bù `delivered_date`, hoặc để trống `delay_cause`. (4) **Khách viết khác đi:** ghi số ngày trễ sai, dán SĐT hay địa chỉ vào ticket, viết kiểu ra lệnh. (5) **Mở rộng kho:** thêm kho sỉ HCM-B2B (đơn từ 2 triệu) làm số tiền mỗi ca vượt hạn mức tự động. |
-| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | "Sao biết đơn trễ mấy ngày?" Trả lời: lấy `delivered_date − promised_date` trong tracking DB, không lấy số khách tự ghi. "Sao biết lỗi do hãng?" Trả lời: theo `delay_cause` do điểm phát ghi, và chỉ khi nguyên nhân nằm trong `fault_causes` của chính sách đang hiệu lực. "Dữ liệu gì của khách được gửi cho hãng?" Trả lời: chỉ `order_id`, `parcel_id`, `district`, `delay_days`. |
+| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | "Sao biết đơn trễ mấy ngày?" Trả lời: theo thiết kế phải lấy `delivered_date − promised_date` trong tracking DB, không lấy số khách tự ghi. "Sao biết lỗi do hãng?" Trả lời: theo `delay_cause` do điểm phát ghi, và chỉ khi nguyên nhân nằm trong `fault_causes` của chính sách đang hiệu lực. "Dữ liệu gì được phép gửi cho hãng?" Allowlist là `order_id`, `parcel_id`, `district`, `delay_days`; tuy nhiên trace `T-002@55` cho thấy hiện baseline còn gửi `customer_note`, nên cần chặn trường ngoài allowlist trước khi chạy thật. |
 
 **Tóm lại (điền vào chỗ trống):**
 Trợ lý dùng `tracking DB (orders.parcels)`, `chính sách hoàn tiền đang hiệu lực (policies)`, `phê duyệt và sổ cái (approvals, ledger)` để giúp `khách bị giao trễ và trưởng ca CSKH` làm được `hoàn đúng tiền, ghi lỗi đúng hãng trong ngày, chỉ chuyển người những ca vượt hạn mức`.
 Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `parcels[].delivered_date / promised_date (ra số ngày trễ)`, `parcels[].delay_cause (ai chịu lỗi)`.
-Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `ngày đổi chính sách (v3 sang v4 ngày 01/12/2026) và mùa cao điểm hoặc mưa bão`. Dấu hiệu nhìn thấy sớm nhất: `tỉ lệ chuyển người (escalation_rate) tăng vọt và số lỗi hãng có delay_cause = FORCE_MAJEURE xuất hiện sau 01/12`.
+Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `ngày đổi chính sách (v3 sang v4 ngày 01/12/2026) và mùa cao điểm hoặc mưa bão`. Dấu hiệu có thể theo dõi: `escalation_rate` (đã có monitor); policy mismatch và lỗi hãng có `delay_cause = FORCE_MAJEURE` sau 01/12 là metric đề xuất, hiện chưa được đăng ký trong `monitors.py`.
 
 **Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `chính sách REFUND-v3 thay bằng REFUND-v4: hạn mức tự động giảm từ 200.000đ xuống 100.000đ; ngưỡng hoàn phí giảm từ trễ 3 ngày xuống 2 ngày; ngưỡng thưởng từ 7 xuống 5 ngày, trần thưởng từ 200.000đ lên 300.000đ; FORCE_MAJEURE bị bỏ khỏi fault_causes (vẫn hoàn cho khách nhưng không ghi lỗi hãng)` · đổi ngày nào `2026-12-01` ·
 trường nào cho thấy `policies[].effective_from / effective_to, policies[].index_active (cờ này phải chuyển từ v3 sang v4), late.min_days_fee, auto_limit_vnd, fault_causes` · con số nào của Bản tiêu chí bị ảnh hưởng `wrongful_refund_vnd_max (dùng v3 sau 01/12 thì đơn trễ 2 ngày bị từ chối sai, đơn trễ 5–6 ngày thiếu thưởng); wrongful_carrier_faults_max (ghi lỗi hãng cho ca bão lũ thành ghi oan); escalation_rate_max 0,25 (hạn mức 100.000đ làm nhiều ca phải chuyển người hơn); kéo theo cost_per_ticket_vnd_max và roi_min`.
-Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `Quan hệ vào–ra đổi (concept drift): cùng một đơn (trễ 2 ngày, nguyên nhân FORCE_MAJEURE) nhưng đáp án đúng về tiền và lỗi hãng khác đi, trong khi đầu vào không đổi gì. Phát hiện bằng: (1) tỉ lệ ticket mà policy_id trợ lý dùng khác effective_policy(as_of), đo được không cần nhãn; (2) escalation_rate theo ngày, báo động khi tăng quá 0,25; (3) số lỗi hãng có delay_cause = FORCE_MAJEURE sau 01/12 (phải bằng 0). Cạnh đó cũng có drift đầu vào theo mùa (lượng ticket và tỉ lệ FORCE_MAJEURE tăng mùa bão, Tết), phát hiện bằng số ticket mỗi giờ và queue_stuck.`
+Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `Quan hệ vào–ra đổi (concept drift): cùng một đơn (trễ 2 ngày, nguyên nhân FORCE_MAJEURE) nhưng đáp án đúng về tiền và lỗi hãng khác đi, trong khi đầu vào không đổi gì. Có thể phát hiện bằng: (1) tỉ lệ ticket mà policy_id trợ lý dùng khác effective_policy(as_of) (metric đề xuất, chưa có monitor); (2) escalation_rate theo ngày, báo động khi tăng quá 0,25 (monitor hiện có); (3) số lỗi hãng có delay_cause = FORCE_MAJEURE sau 01/12, kỳ vọng bằng 0 (metric đề xuất). Cạnh đó cũng có drift đầu vào theo mùa (lượng ticket và tỉ lệ FORCE_MAJEURE tăng mùa bão, Tết), có thể theo dõi bằng số ticket mỗi giờ và queue_stuck trong report.`
 
 **Ví dụ một dòng (đừng chép):** trường then chốt `parcels[].delivered_date` · bản ghi do máy quét ở điểm phát tạo ra, là nguồn
 sự thật về ngày giao · lệch khi điểm phát quét sót hoặc nhập bù bằng tay.
