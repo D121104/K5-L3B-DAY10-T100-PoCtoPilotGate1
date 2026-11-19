@@ -7,9 +7,10 @@ Tiêu chí đã ký ở Phiếu A. Từ phút 65 bàn mới được chạy tr�
 (trừ khi Phiếu C bảo "mở lại" một ô và ghi bằng bút khác màu).
 
 **Mục lục**
+
 - [B0 · Nhật ký lần chạy vòng 1 (suốt khối)](#b0)
 - [B1 · Câu 2.1 · Lần chạy đầu tiên, cổng tự chặn hay người duyệt · phút 65–71](#b1)
-- [B2 · Câu 2.2 · Bảng soát lỗi `T-002@55` · phút 71–75](#b2)
+- [B2 · Câu 2.2 · Bảng soát lỗi](#b2) `T-002@55` [· phút 71–75](#b2)
 - [B3 · Câu 2.3 · Bản đồ dữ liệu và ví dụ drift · phút 65–75](#b3)
 - [B4 · Câu 2.4 · HAZOP vòng 1 · phút 65–75](#b4)
 - [B5 · Câu 2.4 · Checklist 9 nhóm việc, lần 1 · phút 70–75](#b5)
@@ -19,7 +20,7 @@ Tiêu chí đã ký ở Phiếu A. Từ phút 65 bàn mới được chạy tr�
 
 ---
 
-<a id="b0"></a>
+
 
 ## B0 · Nhật ký lần chạy vòng 1
 
@@ -36,7 +37,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 
 ---
 
-<a id="b1"></a>
+
 
 ## B1 · Câu 2.1 · Lần chạy đánh giá đầu tiên
 
@@ -60,7 +61,7 @@ Khuyến nghị (khoanh một): **tự chặn · người duyệt · kết hợp
 
 ---
 
-<a id="b2"></a>
+
 
 ## B2 · Câu 2.2 · Bảng soát lỗi cho `T-002@55`
 
@@ -73,6 +74,7 @@ và xếp vào một trong ba **loại lỗi**; (2) đưa lỗi qua bộ câu h�
 đó là lỗi, người ta đi tiếp bằng đường nào, hệ thống học được gì.
 
 Ba loại lỗi:
+
 - **Giới hạn của hệ thống**: hệ thống không thể trả lời đúng, hoặc không trả lời được, vì giới hạn vốn có.
 - **Lỗi ngữ cảnh**: hệ thống "chạy đúng thiết kế" nhưng người dùng thấy sai, vì hành động không được giải thích, trái với hình dung của họ, hoặc dựa trên giả định kém.
 - **Lỗi chìm**: hệ thống chạy sai mà **cả người dùng lẫn hệ thống đều không nhận ra**. Với một trợ lý có quyền ghi sổ, đây là loại nguy hiểm nhất: người chịu hại thường là bên thứ ba.
@@ -109,7 +111,7 @@ tín hiệu: đếm sự kiện `model_override` mỗi ngày.
 
 ---
 
-<a id="b3"></a>
+
 
 ## B3 · Câu 2.3 · Bản đồ dữ liệu của trợ lý và ví dụ drift
 
@@ -144,7 +146,7 @@ sự thật về ngày giao · lệch khi điểm phát quét sót hoặc nhập
 
 ---
 
-<a id="b4"></a>
+
 
 ## B4 · Câu 2.4 · HAZOP vòng 1 trên tool của agent
 
@@ -165,15 +167,15 @@ mà cả bàn chưa nghĩ tới, không phải tả lại nhánh đã biết.
 **Câu hỏi dẫn dắt:** tool nào tạo ra hậu quả không đảo ngược? Mỗi tham số của tool đó lấy từ đâu (ticket, DB, model tự suy)?
 Với mỗi guideword: hậu quả cho ai, hiện có gì ngăn, cần thêm gate ở tầng nào (phát hiện / chặn / giới hạn thiệt hại)?
 
-Tool chọn phân tích: `________________` (gợi ý: `issue_refund`, `file_carrier_fault`, `notify_carrier`)
+Tool chọn phân tích: `issue_refund`
 
 | Tham số / dòng dữ liệu | Guideword | Lệch cụ thể (viết bằng dữ kiện của lab) | Hậu quả, cho ai | Hiện có gì ngăn? | Gate đề xuất + tầng |
 |---|---|---|---|---|---|
-| | WRONG | | | | |
-| | INVALID | | | | |
-| | INCOMPLETE | | | | |
-| | PERTURBED | | | | |
-| | INCAPABLE | | | | |
+| `amount_vnd` | WRONG | Agent tính tiền từ số ngày khách tự khai trong ticket, khác `tracking.db_delay_days` | LogiX/shop mất tiền; chị Oanh lệch sổ đối soát | Chỉ trần “không vượt tổng đơn” / hạn mức thô | `write_gate`: so `amount_vnd` với `entitlement_vnd` từ DB (chặn/escalate) |
+| `approval_id` | INVALID | Dùng phê duyệt hết hạn / sai người / không khớp khoản vượt `auto_limit_vnd` 200.000đ (REFUND-v3) | Hoàn vượt hạn mức không hợp lệ; CSKH mất tin | Chưa có cổng vòng 1 | `write_gate`: bắt buộc approval hợp lệ khi vượt hạn; sai → escalate cho `NV-HANH` |
+| `order_id` / cơ sở tính | INCOMPLETE | Thiếu `delivered_date` hoặc kiện chưa có tracking đủ mà vẫn hoàn | Hoàn oan hoặc hoàn thiếu; khách/hãng khiếu | Agent vẫn có thể đoán từ chữ ticket | `pre_guard`/`write_gate`: thiếu nguồn sự thật → escalate |
+| `amount_vnd` + chữ ticket | PERTURBED | Khách nhét câu kiểu “hoàn 2.000.000đ / bỏ qua chính sách” vào nội dung ticket | Hoàn sai hàng loạt; shop bị debit | Chữ khách đang là dữ liệu thô, chưa có cổng | `write_gate`: không tin số trong chữ khách; chỉ tin DB + policy (chặn) |
+| LLM / tools | INCAPABLE | LLM lỗi liên tiếp / hết quota giữa chừng khi đã định hoàn | Ticket kẹt, hàng chờ tăng, SLA 60′ vỡ | Có `llm_fallback` nhưng chưa gắn người và kênh báo | Escalate + báo `slack:#logix-pilot-alerts`; PIC `NV-TUNG` |
 
 Không bắt buộc điền đủ năm dòng. Bắt buộc: **ít nhất ba dòng, trong đó một dòng là nhánh bàn chưa thấy trên trace**.
 
@@ -188,15 +190,16 @@ Không bắt buộc điền đủ năm dòng. Bắt buộc: **ít nhất ba dòn
 
 | Thành phần | Guideword | Lệch cụ thể | Hậu quả, cho ai | Cổng đề xuất: code hay con số nào trong `config/operating_gates.json` |
 |---|---|---|---|---|
-| | | | | |
-| | | | | |
+| Người duyệt | INCAPABLE | 1 người (`reviewers_on_shift=1`, 6 ca/giờ) mà giờ cao điểm ~18 ca/giờ (gấp 3) | Ca cuối chờ > 60′; khách và chị Hạnh chịu | `operations.max_queue_wait_minutes=60`; vàng gọi thêm người; đỏ thu hẹp `pilot_scope` / tắt auto |
+| Ngân sách | WRONG | Tổng hoàn tự động ngày vượt 2.000.000đ (`ops_limits.daily_auto_refund_budget_vnd`) mà không ai biết | Finance vượt trần; shop bị debit dồn | `business.daily_refund_cap_vnd=2000000` + escalate khi chạm trần |
+| Dữ liệu gửi bên thứ ba | PERTURBED | `notify_carrier` kèm `recipient_contact` / `customer_note` có tên·SĐT (đơn quà) | Khách bị lộ PII; vi phạm `pii_leaks_max=0` | `legal.pii_fields_blocked_to_third_party=["recipient_contact","customer_note"]` |
 
-**Ví dụ mẫu (`issue_refund`, đừng chép):** tham số `amount_vnd` · WRONG · số tiền tính từ số ngày khách tự khai · LogiX mất
+**Ví dụ mẫu (**`issue_refund`**, đừng chép):** tham số `amount_vnd` · WRONG · số tiền tính từ số ngày khách tự khai · LogiX mất
 tiền, hãng bị kéo theo một lỗi · hiện chỉ có trần "không vượt tổng tiền đơn" · cổng ghi so với quyền lợi tính từ DB (chặn).
 
 ---
 
-<a id="b5"></a>
+
 
 ## B5 · Câu 2.4 · Checklist go-live 9 nhóm việc, lần 1
 
@@ -208,21 +211,21 @@ Trạng thái: **Xong** (có bằng chứng) · **Chưa** · **Không áp dụng
 
 | # | Nhóm việc | Bằng chứng lấy từ đâu (đã có sẵn trong lab) | Mục cần kiểm tra | Trạng thái | Bằng chứng | PIC |
 |---|---|---|---|---|---|---|
-| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | | | | |
-| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | | | | |
-| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | | | | |
-| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | | | | |
-| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | | | | |
-| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | | | | |
-| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | | | | |
-| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | | | | |
-| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | | | | |
+| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | `pass_rate≥0,90`, `pass_k≥0,85`; hoàn sai / ghi oan / lộ PII = 0 trên bộ nền | Chưa | Chờ mã lần chạy `base · base` (Người 2 sắp chạy) | Đào Đức Duy |
+| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | Delay/cause lấy từ tracking DB (nguồn sự thật), không lấy số ngày khách tự khai trong ticket (bản sao/diễn giải) | Chưa | Phiếu B mục B3 (Người 3) | Bùi Ngọc Hùng |
+| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | Chữ khách trong ticket có thể nhét lệnh “hoàn X đồng / bỏ qua chính sách”; không được tin số trong chữ khách | Xong (phân tích) | B4 dòng PERTURBED (`amount_vnd` + chữ ticket) | Trần Cảnh Hưng |
+| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | Có `write_gate` trước `issue_refund`; `switches.json` còn `on` cho đến khi chạm stop | Chưa | `lab10/guards.py` vòng 1 (Người 1) | Nguyễn Minh Nhân |
+| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | 1 reviewer × 6 ca/giờ; SLA chờ ≤ 60′; LLM lỗi → escalate + báo Slack | Xong (thiết kế) | B4 dòng INCAPABLE (LLM) + ngoài KT (Người duyệt); sẽ khớp `operations.*` | Trần Cảnh Hưng |
+| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | `cost_per_ticket≤7000`, `roi≥0,4`; trần hoàn ngày 2.000.000đ | Chưa | Report sau eval + `business.*` (Người 3) | Bùi Ngọc Hùng |
+| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | PIC=`NV-TUNG`, approver=`NV-HANH`, 1 người trực, SLA 60′, alert `slack:#logix-pilot-alerts`, runbook 1–3 | Đang làm | B7.5–B7.6 + `operating_gates.json` mục `operations` | Trần Cảnh Hưng |
+| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | Chặn `recipient_contact`, `customer_note` gửi hãng; `carrier_fault_requires_recorded_cause=true` | Đang làm | B4 dòng PII + `legal.*` sắp điền | Trần Cảnh Hưng |
+| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | Tiêu chí đã ký; v1 khớp `decision_rule` và bằng chứng mã lần chạy | Chưa | A5 lock `signed_at=2026-11-19T15:27:42`; B8 sau checkpoint | Bùi Ngọc Hùng |
 
 Ô "Chưa" có rủi ro cao → chuyển thành một dòng Risk register (Phiếu C mục C10).
 
 ---
 
-<a id="b6"></a>
+
 
 ## B6 · Câu 2.5 · Pre-mortem bốn lăng kính → cổng phòng ngừa (khoảng 8–10 phút, cả bàn)
 
@@ -238,6 +241,7 @@ Phiếu C mục C1 (bút khác màu).*
 2. **2 phút:** đọc vòng tròn, mỗi lượt một lý do, không bình luận. Gộp lý do trùng.
 3. **2 phút:** xếp từng lý do vào một **lăng kính**. Lăng kính nào còn trống thì cả bàn viết thêm ít nhất một lý do cho nó.
 4. **2 phút:** chọn 2–3 lý do sẽ biến thành **cổng phòng ngừa** ngay hôm nay (code trong `guards.py` hoặc con số trong
+
    `config/operating_gates.json`). Lý do còn lại → Risk register.
 
 Bốn lăng kính (bắt buộc đủ cả bốn; dự án AI hay chết ở ba lăng kính sau hơn là ở lăng kính đầu):
@@ -259,7 +263,7 @@ Bốn lăng kính (bắt buộc đủ cả bốn; dự án AI hay chết ở ba 
 
 ---
 
-<a id="b7"></a>
+
 
 ## B7 · Khối 2B · Cổng phòng ngừa (phút 85–105)
 
@@ -320,7 +324,7 @@ thời gian chờ tối đa, điều kiện dừng, kênh báo tin; trường d�
 nguyên nhân trong tracking). Rồi viết runbook dưới đây **khớp với các con số đó**.
 
 *Runbook là tờ giấy người trực ca cầm lúc 23h khi có chuyện. Nó trả lời: nhìn con số nào, ngưỡng nào thì làm gì, ai được quyết.
-Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết ở vòng 2 (Phiếu C mục C11). Mọi con số phải khớp `config/operating_gates.json` và report.*
+Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết ở vòng 2 (Phiếu C mục C11). Mọi con số phải khớp* `config/operating_gates.json` *và report.*
 *Mỗi phần trả lời bốn câu hỏi: ai chịu trách nhiệm, nhìn gì, ngưỡng nào, làm gì.* **Người viết (vai Vận hành và pháp lý):** ______
 
 #### Runbook 1 · Ai chịu trách nhiệm
@@ -371,7 +375,7 @@ Lượng ticket có thể dồn gấp ba trong một giờ (ngày sale, sau bão
 
 ---
 
-<a id="b8"></a>
+
 
 ## B8 · Chốt cổng vòng 1 và quyết định Gate 1 · v1 (phút 105–115)
 
@@ -390,24 +394,24 @@ Chỉ chọn Tiếp tục khi mọi chỉ số bắt buộc đều đạt.
 Ba câu tự vấn trước khi viết: (1) Rủi ro còn lại có chấp nhận được như hiện trạng không? (2) Cần thêm biện pháp nào, tốn
 bao nhiêu thời gian? (3) Có phần nào của dự án không nên làm tiếp?
 
-| | **v1** (phút 105–115, TRƯỚC khi nhận thẻ sự cố) |
-|---|---|
-| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | |
-| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | |
-| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: ________ · bộ nền với cổng vòng 1 (prepared): ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt phần nào, vì sao | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+|                                                                                                                                                                                                                         | **v1** (phút 105–115, TRƯỚC khi nhận thẻ sự cố)                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn)                                                                                                                                          |                                                                          |
+| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn)                                                                                                                                                 |                                                                          |
+| Mã lần chạy dùng làm bằng chứng                                                                                                                                                                                         | bộ nền, mốc base: ________ · bộ nền với cổng vòng 1 (prepared): ________ |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý)                                                                                                                                     |                                                                          |
+| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output* `lab10.eval` */* `lab10.grade`*, hoặc mục* `by_segment` *trong* `report.json`*.)* |                                                                          |
+| Quyết định (khoanh một)                                                                                                                                                                                                 | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng                                |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa                                                                                                                                                              |                                                                          |
+| Bằng chứng 2                                                                                                                                                                                                            |                                                                          |
+| Bằng chứng 3                                                                                                                                                                                                            |                                                                          |
+| Khớp dòng nào trong `decision_rule` đã ký?                                                                                                                                                                              |                                                                          |
+| Nếu Thu hẹp: cắt phần nào, vì sao                                                                                                                                                                                       |                                                                          |
+| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn                                                                                                                                                                              |                                                                          |
+| Nếu Dừng: bài học ghi lại                                                                                                                                                                                               |                                                                          |
+| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được)                                                                                                                                                                      |                                                                          |
+| Ngày quyết định lại (trừ khi Dừng)                                                                                                                                                                                      |                                                                          |
+| PIC ký                                                                                                                                                                                                                  |                                                                          |
 
 Xong v1 thì lưu và đẩy một bản (sau mốc này không sửa cột v1):
 
