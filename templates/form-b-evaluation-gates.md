@@ -313,10 +313,10 @@ Mỗi con số kèm một câu lý do, lấy từ `data/world.json` → `ops_lim
 
 | Khoá | Giá trị bàn đặt | Lý do (một câu, có số) |
 |---|---|---|
-| `business.daily_refund_cap_vnd` | | |
-| `business.cost_budget_per_ticket_vnd` | | |
-| `business.pilot_scope` (all / warehouse / percent) | | |
-| `business.roi_min` | | |
+| `business.daily_refund_cap_vnd` | `1000000` | Finance chỉ cho hoàn tự động tối đa 2.000.000đ/ngày (`ops_limits.daily_auto_refund_budget_vnd`). Bàn đặt trần bằng một nửa để chừa chỗ cho ngày lượng ticket tăng vọt và cho các khoản có phê duyệt (không tính vào trần). Ở mốc base, ngày cao nhất mới hoàn tự động 155.000đ (`R-base-before-20261119-153542-b45eeb`), nên kể cả lượng ticket gấp 3 vào cao điểm (khoảng 465.000đ) cũng không ca hợp lệ nào bị chuyển người oan. Trần chỉ bật khi trợ lý hoàn bất thường hàng loạt, và giới hạn thiệt hại tối đa của một ngày lỗi ở 1.000.000đ. |
+| `business.cost_budget_per_ticket_vnd` | `1500` | Đúng trần tiền LLM đã thống nhất với Finance (`ops_limits.max_llm_cost_per_ticket_vnd` = 1.500đ). Ticket đắt nhất ở mốc base mới tốn 670đ, nên ticket bình thường không bị chặn. Trần này chỉ chặn ticket dài bất thường (phí cố định khoảng 650đ gồm nền tảng, đọc, kiểm chính sách, xác nhận, cộng 1đ cho mỗi 4 ký tự; vượt 1.500đ là ticket dài hơn khoảng 3.400 ký tự, thường là dán cả đoạn văn hoặc chèn lệnh) và chuyển cho người, vì 1.500đ vẫn rẻ hơn rất nhiều so với 10.000đ làm tay. |
+| `business.pilot_scope` (all / warehouse / percent) | `{"mode": "all", "percent": 100}` | Ở mốc base, cả 4 kho đều rẻ hơn làm tay 10.000đ/ticket (CT 590đ, HN 1.993đ, HCM 2.571đ, DN 4.586đ; `ops_facts.manual_cost_per_ticket_vnd`), và 2 lỗi an toàn chỉ nằm ở 1 ca (`T-002@55`, kho HCM) do trợ lý tin số ngày trễ khách tự ghi chứ không do kho. Cắt kho không sửa được lỗi này, nên vòng 1 giữ đủ phạm vi (độ phủ 1,0) để đo cổng trên mọi kho. Thu hẹp là đòn bẩy để dành cho `decision_rule` "Thu hẹp" khi lỗi dồn ở một kho. Ứng viên cắt đầu tiên là DN (tỉ lệ chuyển người 0,4, cao nhất). Khi pilot thật ở 2 depot, chọn HN và HCM (12/22 ticket mỗi ngày, chi phí thấp). |
+| `business.roi_min` | `0.4` | Khớp `roi_min` 0,4 trong tiêu chí đã ký: làm tay 10.000đ/ticket (`ops_facts`) và trần chi phí 7.000đ/ticket thì ROI khoảng 0,43. Mốc base đạt 1,34 (tiết kiệm ròng 123.542đ/ngày) nhưng đã bị trừ 4.000đ/ngày tiền hoàn sai. Nếu cổng vòng 1 chuyển quá nhiều ca cho người (10.000đ/ca, cộng phí trực 30.000đ/ca) thì ROI sẽ tụt; báo cáo sẽ ghi "vượt trần" khi ROI dưới 0,4. |
 
 ### B7.5 · Câu 2.10 · Cổng con người, vận hành, pháp lý + Runbook phần 1–3
 
