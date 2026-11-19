@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | | |
-| **Thước đo** (một câu, có đơn vị) | | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | |
+| **Bước / hành vi được đo** |Quyết định ghi lỗi hãng vận chuyển (file_carrier_fault). | |
+| **Thước đo** (một câu, có đơn vị) |Tỷ lệ quyết định ghi lỗi đúng theo từng kiện hàng và hãng vận chuyển (đơn vị: %). | |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) |Bộ nền 22 ticket × 5 seed (110 lần chạy). Lấy sự kiện file_carrier_fault từ trace của các lần chạy và đối chiếu với data/world.json → orders[].parcels[] (parcel_id, carrier_id, delay_cause, promised_date, delivered_date) và policies[] (fault_causes, thời gian hiệu lực). Nhãn chuẩn do nhân sự nghiệp vụ xác minh từ tracking và chính sách tương ứng. | |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) |Accuracy = Số quyết định ghi lỗi đúng (đúng việc có/không ghi lỗi, đúng kiện, đúng hãng) / Tổng số quyết định có nhãn hợp lệ × 100%. Các lần thiếu dữ liệu hoặc không đến bước quyết định được thống kê riêng; không mặc định là đúng | |
 | **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | | |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) |Không phát hiện lỗi nếu tracking hoặc nhãn chuẩn sai; không trực tiếp đo tổn thất tài chính hay mức phạt thực tế của hãng. | |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`
