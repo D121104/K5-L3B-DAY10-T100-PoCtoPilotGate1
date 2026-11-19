@@ -222,14 +222,8 @@ Mở lại Phiếu B mục B3. Ghi ở đây những dòng đổi so với vòng
 
 | Trường / bảng | Vòng 1 bàn đã coi là (nguồn sự thật / bản sao / chưa hỏi) | Sau khi đọc thẻ thì thấy | Ảnh hưởng tới tiền hay lỗi hãng thế nào |
 |---|---|---|---|
-| 1 · Chất lượng | Chưa | `R-S8-grade-20261119-192650-5f5d87`: base/visible after đạt ngưỡng, nhưng self-grade FAIL do integrity manifest liệt kê S1–S7 không có trong repo; không coi report là chứng nhận. | Đào Đức Duy |
-| 2 · Dữ liệu | Xong (S8) | G1 xác minh approval/tracking/ledger; G2 chặn order không tồn tại trước LLM; trace S8-01/04 và T-018. | Bùi Ngọc Hùng |
-| 4 · Quyền hạn | Xong (visible) | S8-04 invalid approval escalated; S8-05 approval hợp lệ vẫn được xử lý; regression 13/13. | Nguyễn Minh Nhân |
-| 5 · Hạ tầng | Chưa | Grade after max wait 1 phút/0 ùn, nhưng fallback LLM còn fail-open và reviewer backup chưa định danh. | Trần Cảnh Hưng |
-| 6 · Chi phí | Chưa (nhóm `?`) | Base after tổng 5.538đ/ROI 0.81; order không tra được cost 10.200đ/ticket > manual 10.000đ. | Bùi Ngọc Hùng |
-| 7 · Vận hành | Chưa | S8 after recheck 10%, wait 1 phút; một reviewer 6 ca/giờ, backup chưa có tên; alert Slack thủ công. | Trần Cảnh Hưng |
-| 8 · Pháp lý | Xong (visible) | `pii_leaks=0`, `wrongful_carrier_faults=0`; G3 chỉ gửi allowlist; chưa có đối tác thật bị ảnh hưởng. | Trần Cảnh Hưng |
-| 9 · Quyết định | Chưa cho pilot | C12 v2 giữ rollout ở trạng thái hold vì grade FAIL integrity, dù mọi metric visible đạt. | Bùi Ngọc Hùng |
+| | | | |
+| | | | |
 
 ---
 
@@ -398,14 +392,14 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 | # nhóm | Trạng thái mới (Xong / Chưa / Không áp dụng) | Bằng chứng mới (mã lần chạy, mục phiếu, số trong report) | PIC |
 |---|---|---|---|
-| 1 · Chất lượng | Chưa | `R-S8-grade-20261119-192650-5f5d87`: visible checks pass, but full self-grade integrity fails because locked S1–S7 files are absent. | Đào Đức Duy |
-| 2 · Dữ liệu | Xong (S8) | G1 checks approval/order/ticket; G2 escalates T-018 unknown order before LLM; C2/C7 traces. | Bùi Ngọc Hùng |
-| 4 · Quyền hạn | Xong (visible) | S8-04 invalid approval escalated, S8-05 valid approval remains allowed; tests 13/13. | Nguyễn Minh Nhân |
-| 5 · Hiệu năng/hạ tầng | Chưa | S8 after wait max 1 minute and no stuck queue, but LLM fallback remains fail-open and backup reviewer is unnamed. | Trần Cảnh Hưng |
-| 6 · Chi phí | Chưa (segment `?`) | Base after cost 5.538đ/ROI 0.81; unresolved-order segment is 10.200đ/ticket vs 10.000đ manual. | Bùi Ngọc Hùng |
-| 7 · Vận hành | Chưa | S8 recheck is 10% and max wait 1 minute; no backup roster and Slack alert is manual. | Trần Cảnh Hưng |
-| 8 · Legal | Xong (S8 visible) | `pii_leaks=0`, `wrongful_carrier_faults=0`; G3 retains allowlist; no real third party affected in simulation. | Trần Cảnh Hưng |
-| 9 · Decision | Xong (v2 hold recorded) | C12 records `Cải tiến thêm`; no live launch while integrity and cost-segment gaps remain. | Bùi Ngọc Hùng |
+| 1 · Chất lượng | Chưa | `R-S8-grade-20261119-192650-5f5d87`: các kiểm tra hiển thị đều đạt, nhưng kiểm tra toàn vẹn khi tự chấm không đạt vì thiếu các tệp S1–S7 được khóa. | Đào Đức Duy |
+| 2 · Dữ liệu | Xong (S8) | G1 kiểm tra approval/order/ticket; G2 chuyển ticket T-018 có order không xác minh được cho người xử lý trước khi gọi LLM; trace ở C2/C7. | Bùi Ngọc Hùng |
+| 4 · Quyền hạn | Xong (hiển thị) | S8-04 có approval không hợp lệ nên được chuyển cho người xử lý; S8-05 có approval hợp lệ nên vẫn được phép xử lý; 13/13 kiểm thử đạt. | Nguyễn Minh Nhân |
+| 5 · Hiệu năng/hạ tầng | Chưa | Sau sửa S8, thời gian chờ tối đa là 1 phút và không có hàng đợi bị ùn; tuy nhiên, phương án dự phòng khi LLM lỗi vẫn cho phép tiếp tục (fail-open) và chưa nêu tên người duyệt dự phòng. | Trần Cảnh Hưng |
+| 6 · Chi phí | Chưa (phân khúc `?`) | Chi phí trung bình mỗi ticket ở mốc after của bộ nền là 5.538đ/ROI 0,81; phân khúc order không xác minh được tốn 10.200đ/ticket, cao hơn mức làm tay 10.000đ. | Bùi Ngọc Hùng |
+| 7 · Vận hành | Chưa | S8 kiểm tra lại 10%, thời gian chờ tối đa 1 phút; chưa có danh sách người dự phòng và cảnh báo Slack vẫn phải thực hiện thủ công. | Trần Cảnh Hưng |
+| 8 · Pháp lý | Xong (S8, hiển thị) | `pii_leaks=0`, `wrongful_carrier_faults=0`; G3 tiếp tục giới hạn người nhận theo danh sách cho phép; mô phỏng không ảnh hưởng bên thứ ba thật. | Trần Cảnh Hưng |
+| 9 · Quyết định | Xong (đã ghi nhận quyết định giữ ở trạng thái chờ trong v2) | C12 ghi quyết định `Cải tiến thêm`; chưa triển khai thật khi vẫn còn thiếu sót về toàn vẹn và chi phí theo phân khúc. | Bùi Ngọc Hùng |
 
 ### Runbook 4 · Sau sự cố trên thẻ (vòng 2)
 
