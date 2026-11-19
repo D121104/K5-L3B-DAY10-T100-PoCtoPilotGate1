@@ -255,11 +255,12 @@ Bốn lăng kính (bắt buộc đủ cả bốn; dự án AI hay chết ở ba 
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được hôm nay? (trace / data / config nào) | Thành cổng phòng ngừa nào (code hay config) / hay vào risk register |
 |---|---|---|---|
-| | Kỹ thuật | | |
-| | Kinh doanh | | |
-| | Con người và vận hành | | |
-| | Pháp lý | | |
-| | | | |
+| Trợ lý đã tin số khách tự khai 5 ngày thay vì tracking 2 ngày, nên ghi hoàn 20.000đ và một lỗi cho VNX; trace `T-002@55` cho thấy lỗi chìm dù `pass_rate` tổng thể là 0.9909. | Kỹ thuật | Report `R-base-before-20261119-153542-b45eeb`, trace `T-002@55`: `model_override`, `wrongful_refund_vnd=20000`, `wrongful_carrier_faults=1`; `lab10/guards.py` hiện cho qua. | **Chọn cổng 1:** `pre_guard`/`write_gate` chỉ dùng tracking DB và policy hiệu lực để tính quyền lợi; nếu claim khác DB, thiếu nguyên nhân hoặc policy không rõ thì chuyển NV-HANH, không ghi tự động. |
+| Ngân sách hoàn ngày chưa được đặt trong cổng bàn, trong khi một phân khúc ticket đã tốn 10.359đ/ticket so với làm tay 10.000đ; khi mở rộng, hoàn tự động và chi phí đã vượt mức Finance chấp nhận. | Kinh doanh | `data/world.json`: ngân sách hoàn tự động 2.000.000đ/ngày, LLM tối đa 1.500đ/ticket, làm tay 10.000đ; baseline report: cost tổng 4.203đ/ROI 1.34 nhưng kho `?` là 10.359đ; `business.*` hiện phần lớn `null`. | **Gộp vào cổng 2:** đặt `business.daily_refund_cap_vnd=2000000`, trần chi phí máy theo `ops_limits` 1.500đ/ticket, ROI tối thiểu 0,4 và pilot_scope HN/HCM; theo dõi chi phí theo phân khúc, không dùng trung bình tổng để bỏ qua phân khúc lỗ. |
+| Chỉ một reviewer đã nhận nhiều ca dồn trong giờ cao điểm; hàng chờ vượt SLA 60 phút, khách phải chờ và CSKH mất niềm tin nên bàn đã phải thu hẹp/tắt pilot. | Con người và vận hành | `data/world.json`: một reviewer xử lý 6 ca/giờ, SLA 60 phút; tiêu chí ký yêu cầu `queue_stuck_max=0`; `operations.max_queue_wait_minutes` hiện `null`. 18 ca/giờ là stress case giả định, không phải số đo baseline. | **Gộp vào cổng 2:** đặt `operations.max_queue_wait_minutes=60`; runbook quy định gọi thêm reviewer, thu hẹp HN/HCM hoặc tắt switch khi có nguy cơ ùn; PIC `NV-TUNG`, người duyệt `NV-HANH`. |
+| Hãng đã nhận `customer_note` và thông tin người nhận quà (tên/SĐT) ngoài các trường cần thiết; sau khi phát hiện PII rời LogiX, bàn phải dừng gửi hãng. | Pháp lý | `lab10/agent.py` tạo `customer_note` cho mọi thông báo và thêm `recipient_contact` cho đơn quà; trace `T-002@55` xác nhận trường ngoài allowlist nhưng không có PII trong chính ticket này; `legal.*` hiện chưa cấu hình. | **Chọn cổng 3:** allowlist cứng payload chỉ gồm `order_id`, `parcel_id`, `district`, `delay_days`; chặn `customer_note`/`recipient_contact` và đặt `carrier_fault_requires_recorded_cause=true`; kiểm thử cả đơn quà trước khi mở pilot. |
+
+**Thảo luận giả lập và thống nhất:** Kỹ sư cổng đề nghị không để model/claim quyết định tiền và lỗi hãng; Sản phẩm & kinh doanh đồng ý vì T-002 đã trượt hai ngưỡng an toàn dù pass rate cao, đồng thời yêu cầu giới hạn scope để không che phân khúc lỗ bằng số trung bình; Vận hành & pháp lý yêu cầu SLA 60 phút, người chịu trách nhiệm rõ ràng và chặn payload ngoài allowlist trước khi gửi bên thứ ba. Cả bàn thống nhất ưu tiên ba cổng trên: (1) source-of-truth/approval trước ghi, (2) ngân sách + scope + sức chứa hàng chờ, (3) allowlist và nguyên nhân tracking. Đây là **kế hoạch vòng 1, chưa triển khai**; rủi ro model thật/hiếm gặp và sai lệch tracking được giữ trong risk register để xem lại sau pilot.
 
 ---
 
